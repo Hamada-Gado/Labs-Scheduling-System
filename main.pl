@@ -7,7 +7,7 @@ from updating the load of TA Name in TAs.
 */
 ta_slot_assignment([], [], _).
 ta_slot_assignment([ta(Name, Slots)|T], [ta(Name, Slots2)|T], Name) :-
-    Slots > 1,
+    Slots > 0,
     Slots2 is Slots - 1, !.
 ta_slot_assignment([ta(Name1, Slots)|T1], [ta(Name1, Slots)|T2], Name2) :-
     Name1 \= Name2,
@@ -27,6 +27,8 @@ slot_assignment(LabsNum, [ta(Name, Slot1)|T1], [ta(Name, Slot2)|T2], [Name|Assig
     New_LabsNum is LabsNum - 1,
     ta_slot_assignment([ta(Name, Slot1)|T1], [ta(Name, Slot2)|_], Name),
     slot_assignment(New_LabsNum, T1, T2, Assignment), !.
+slot_assignment(LabsNum, [ta(Name, 0)|T1], [ta(Name, 0)|T2], Assignment) :-
+    slot_assignment(LabsNum, T1, T2, Assignment).
 
 /**
 max_slots_per_day(DaySched,Max) such that:
@@ -66,3 +68,7 @@ day_schedule(DaySlots,TAs,RemTAs,Assignment) such that:
 day_schedule/4 succeeds if Assignment is a possible day assignment given the
 available DaySlots and list of course TAs, while RemTAs is the list of updated TA structures after the day assignment.
 */
+day_schedule([], TAs, TAs, []).
+day_schedule([LabsNum|RestDaySlots], TAs, RemTAs, [Assignment|Assignments]) :-
+    slot_assignment(LabsNum, TAs, RemTAs2, Assignment),
+    day_schedule(RestDaySlots, RemTAs2, RemTAs, Assignments).
