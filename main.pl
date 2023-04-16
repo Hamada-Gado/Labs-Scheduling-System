@@ -7,6 +7,7 @@ from updating the load of TA Name in TAs.
 */
 ta_slot_assignment([], [], _).
 ta_slot_assignment([ta(Name, Slots)|T], [ta(Name, Slots2)|T], Name) :-
+    Slots > 1,
     Slots2 is Slots - 1, !.
 ta_slot_assignment([ta(Name1, Slots)|T1], [ta(Name1, Slots)|T2], Name2) :-
     Name1 \= Name2,
@@ -45,7 +46,7 @@ max_slots_per_day([[Name|T1]|T2], Max) :-
     max_ta_slots_per_day([[Name|T1]|T2], Name, Max),
     max_slots_per_day([T1|T2], Max).
 
-max_ta_slot_per_day(DaySched, Name, Max) :- max_ta_slot_per_day(DaySched, Name, 0, Max).
+max_ta_slots_per_day(DaySched, Name, Max) :- max_ta_slots_per_day(DaySched, Name, 0, Max).
 max_ta_slots_per_day([], _, Count, Max) :- Count =< Max.
 max_ta_slots_per_day([Assignment|Rest], Name, Count, Max) :-
     member(Name, Assignment),
@@ -54,3 +55,14 @@ max_ta_slots_per_day([Assignment|Rest], Name, Count, Max) :-
 max_ta_slots_per_day([Assignment|Rest], Name, Count, Max) :-
     \+member(Name, Assignment),
     max_ta_slots_per_day(Rest, Name, Count, Max), !.
+
+/**
+day_schedule(DaySlots,TAs,RemTAs,Assignment) such that:
+    • DaySlots is a list of 5 numbers representing the number of parallel labs in the
+    5 slots of the day.
+    • TAs and RemTAs are lists of TA structures.
+    • Assignment is a list of lists of TA names in TAs representing the assignment
+    of the day.
+day_schedule/4 succeeds if Assignment is a possible day assignment given the
+available DaySlots and list of course TAs, while RemTAs is the list of updated TA structures after the day assignment.
+*/
