@@ -8,10 +8,10 @@ from updating the load of TA Name in TAs.
 ta_slot_assignment([], [], _).
 ta_slot_assignment([ta(Name, Slots)|T], [ta(Name, Slots2)|T], Name) :-
     Slots > 0,
-    Slots2 is Slots - 1, !.
+    Slots2 is Slots - 1.
 ta_slot_assignment([ta(Name1, Slots)|T1], [ta(Name1, Slots)|T2], Name2) :-
     Name1 \= Name2,
-    ta_slot_assignment(T1, T2, Name2), !.
+    ta_slot_assignment(T1, T2, Name2).
 
 /**
 slot_assignment(LabsNum,TAs,RemTAs,Assignment) such that:
@@ -22,13 +22,17 @@ slot_assignment(LabsNum,TAs,RemTAs,Assignment) such that:
 slot_assignment/4 succeeds if Assignment is a possible assignment to a single
 slot with LabsNum labs and RemTAs is the list of modified TAs after the assignment.
 */
-slot_assignment(0, TAs, TAs, []).
-slot_assignment(LabsNum, [ta(Name, Slot1)|T1], [ta(Name, Slot2)|T2], [Name|Assignment]) :-
+slot_assignment(LabsNum, TAs, RemTAs, Assignment) :-
+    permutation(TAs, Per_TAs),
+    slot_assignment_helper(LabsNum, Per_TAs, RemTAs, Assignment).
+
+slot_assignment_helper(0, TAs, TAs, []).
+slot_assignment_helper(LabsNum, [ta(Name, Slot1)|T1], [ta(Name, Slot2)|T2], [Name|Assignment]) :-
     New_LabsNum is LabsNum - 1,
     ta_slot_assignment([ta(Name, Slot1)|T1], [ta(Name, Slot2)|_], Name),
-    slot_assignment(New_LabsNum, T1, T2, Assignment), !.
-slot_assignment(LabsNum, [ta(Name, 0)|T1], [ta(Name, 0)|T2], Assignment) :-
-    slot_assignment(LabsNum, T1, T2, Assignment).
+    slot_assignment_helper(New_LabsNum, T1, T2, Assignment).
+slot_assignment_helper(LabsNum, [ta(Name, 0)|T1], [ta(Name, 0)|T2], Assignment) :-
+    slot_assignment_helper(LabsNum, T1, T2, Assignment).
 
 /**
 max_slots_per_day(DaySched,Max) such that:
@@ -56,14 +60,14 @@ max_ta_slots_per_day([Assignment|Rest], Name, Count, Max) :-
     max_ta_slots_per_day(Rest, Name, New_Count, Max), !.
 max_ta_slots_per_day([Assignment|Rest], Name, Count, Max) :-
     \+member(Name, Assignment),
-    max_ta_slots_per_day(Rest, Name, Count, Max), !.
+    max_ta_slots_per_day(Rest, Name, Count, Max).
 
 /**
-day_schedule(DaySlots,TAs,RemTAs,Assignment) such that:
+day_schedule(DaySlots,TAs,RemTAs,Assignments) such that:
     • DaySlots is a list of 5 numbers representing the number of parallel labs in the
     5 slots of the day.
     • TAs and RemTAs are lists of TA structures.
-    • Assignment is a list of lists of TA names in TAs representing the assignment
+    • Assignments is a list of lists of TA names in TAs representing the assignment
     of the day.
 day_schedule/4 succeeds if Assignment is a possible day assignment given the
 available DaySlots and list of course TAs, while RemTAs is the list of updated TA structures after the day assignment.
@@ -72,3 +76,15 @@ day_schedule([], TAs, TAs, []).
 day_schedule([LabsNum|RestDaySlots], TAs, RemTAs, [Assignment|Assignments]) :-
     slot_assignment(LabsNum, TAs, RemTAs2, Assignment),
     day_schedule(RestDaySlots, RemTAs2, RemTAs, Assignments).
+
+/**
+week_schedule(WeekSlots,TAs,DayMax,WeekSched) such that:
+    • WeekSlots is a list of 6 lists with each list representing a working day from
+    Saturday till Thursday. A list representing a day is composed of 5 numbers
+    representing the 5 slots in the day. The number at position i in a day list represents the number of parallel labs at slot i.
+*/
+week_schedule([], _, _, []).
+week_schedule([DaySlots|RestWeekSlots], TAs, DayMax, [Assignments|WeekSched]) :-
+    day_schedule(DaySlots, TAs, RemTAs, Assignments),
+    max_slots_per_day(Assignments, DayMax),
+    week_schedule(RestWeekSlots, RemTAs, DayMax, WeekSched).
