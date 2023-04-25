@@ -69,9 +69,6 @@ day_schedule(DaySlots, TAs, RemTAs, Assignments) such that:
 day_schedule/4 succeeds if Assignment is a possible day assignment given the
 available DaySlots and list of course TAs, while RemTAs is the list of updated TA structures after the day assignment.
 */
-% day_schedule(DaySlots, TAs, RemTAs, Assignment) :-
-%     permutation(TAs, PerTAs),
-%     day_schedule_helper(DaySlots, PerTAs, RemTAs, Assignment).
 day_schedule([], TAs, TAs, []).
 day_schedule([LabsNum|RestDaySlots], TAs, FinalRemTAs, [Assignment|Assignments]) :-
     slot_assignment(LabsNum, TAs, RemTAs, Assignment),
@@ -82,6 +79,9 @@ week_schedule(WeekSlots, TAs, DayMax, WeekSched) such that:
     • WeekSlots is a list of 6 lists with each list representing a working day from
     Saturday till Thursday. A list representing a day is composed of 5 numbers
     representing the 5 slots in the day. The number at position i in a day list represents the number of parallel labs at slot i.
+week_schedule/4 succeeds if WeekSched is a possible assignment of the labs to the
+teaching assistants in TAs according to WeekSlots so that none is assigned more
+than their teaching load or assigned more than DayMax labs per day
 */
 week_schedule([], _, _, []).
 week_schedule([DaySlots|RestWeekSlots], TAs, DayMax, [Assignments|WeekSched]) :-
